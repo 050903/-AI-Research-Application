@@ -60,4 +60,4 @@ Educational and research use.
 
 ## Author
 
-Manus AI - June 2025
+Tran The Hao AI - June 2025
