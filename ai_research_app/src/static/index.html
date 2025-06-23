@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Application</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            border: 2px solid #e74c3c; 
+            border-radius: 10px; 
+            background-color: #fdf2f2;
+        }
+        .section h2 { 
+            margin-top: 0; 
+            color: #e74c3c;
+            font-size: 1.5em;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+            color: #34495e;
+        }
+        input[type="text"], input[type="url"], input[type="file"], textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #bdc3c7; 
+            border-radius: 5px; 
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button { 
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px; 
+            border: none;
+            border-radius: 5px;
+            cursor: pointer; 
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .result { 
+            background-color: #ecf0f1; 
+            padding: 15px; 
+            border: 1px solid #bdc3c7; 
+            border-radius: 5px; 
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .loading {
+            color: #f39c12;
+            font-style: italic;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .success {
+            color: #27ae60;
+        }
+        .image-preview {
+            max-width: 300px;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Research Application</h1>
+        <p style="text-align: center; color: #7f8c8d; font-size: 1.1em;">
+            Analyze images, websites, and get answers to your AI/ML/DL questions
+        </p>
+
+        <!-- Image Analysis Section -->
+        <div class="section">
+            <h2>📸 Image Recognition & Analysis</h2>
+            <div class="input-group">
+                <label for="image-upload">Upload an image for analysis:</label>
+                <input type="file" id="image-upload" accept="image/*" onchange="previewImage(this)">
+                <img id="image-preview" class="image-preview" style="display: none;">
+            </div>
+            <button onclick="analyzeImage()" id="analyze-image-btn">Analyze Image</button>
+            <div id="image-analysis-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Website Analysis Section -->
+        <div class="section">
+            <h2>🌐 Website Analysis</h2>
+            <div class="input-group">
+                <label for="website-url">Enter website URL:</label>
+                <input type="url" id="website-url" placeholder="https://example.com">
+            </div>
+            <button onclick="analyzeWebsite()" id="analyze-website-btn">Analyze Website</button>
+            <div id="website-analysis-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Question Answering Section -->
+        <div class="section">
+            <h2>❓ AI/ML/DL Question Answering</h2>
+            <div class="input-group">
+                <label for="question-input">Ask a question about AI, Machine Learning, or Deep Learning:</label>
+                <textarea id="question-input" placeholder="What is machine learning?"></textarea>
+            </div>
+            <button onclick="answerQuestion()" id="answer-question-btn">Get Answer</button>
+            <div id="question-answer-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api/ai';
+
+        // Helper function to display results
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            
+            if (isError) {
+                element.className = 'result error';
+                element.textContent = `Error: ${data.error || data}`;
+            } else {
+                element.className = 'result success';
+                element.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+
+        // Helper function to show loading state
+        function showLoading(elementId, buttonId) {
+            const element = document.getElementById(elementId);
+            const button = document.getElementById(buttonId);
+            
+            element.style.display = 'block';
+            element.className = 'result loading';
+            element.textContent = 'Processing... Please wait.';
+            button.disabled = true;
+        }
+
+        // Helper function to hide loading state
+        function hideLoading(buttonId) {
+            const button = document.getElementById(buttonId);
+            button.disabled = false;
+        }
+
+        // Preview uploaded image
+        function previewImage(input) {
+            const preview = document.getElementById('image-preview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Analyze uploaded image
+        async function analyzeImage() {
+            const resultElementId = 'image-analysis-result';
+            const buttonId = 'analyze-image-btn';
+            const fileInput = document.getElementById('image-upload');
+            
+            if (!fileInput.files || !fileInput.files[0]) {
+                displayResult(resultElementId, 'Please select an image file first.', true);
+                return;
+            }
+
+            showLoading(resultElementId, buttonId);
+
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/analyze_image`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                displayResult(resultElementId, data);
+            } catch (error) {
+                displayResult(resultElementId, error.message, true);
+            } finally {
+                hideLoading(buttonId);
+            }
+        }
+
+        // Analyze website
+        async function analyzeWebsite() {
+            const resultElementId = 'website-analysis-result';
+            const buttonId = 'analyze-website-btn';
+            const url = document.getElementById('website-url').value.trim();
+            
+            if (!url) {
+                displayResult(resultElementId, 'Please enter a website URL.', true);
+                return;
+            }
+
+            // Basic URL validation
+            try {
+                new URL(url);
+            } catch {
+                displayResult(resultElementId, 'Please enter a valid URL (including http:// or https://).', true);
+                return;
+            }
+
+            showLoading(resultElementId, buttonId);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analyze_website`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                displayResult(resultElementId, data);
+            } catch (error) {
+                displayResult(resultElementId, error.message, true);
+            } finally {
+                hideLoading(buttonId);
+            }
+        }
+
+        // Answer question
+        async function answerQuestion() {
+            const resultElementId = 'question-answer-result';
+            const buttonId = 'answer-question-btn';
+            const question = document.getElementById('question-input').value.trim();
+            
+            if (!question) {
+                displayResult(resultElementId, 'Please enter a question.', true);
+                return;
+            }
+
+            showLoading(resultElementId, buttonId);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/answer_question`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                displayResult(resultElementId, data);
+            } catch (error) {
+                displayResult(resultElementId, error.message, true);
+            } finally {
+                hideLoading(buttonId);
+            }
+        }
+
+        // Health check on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    console.log('AI Analysis API is healthy');
+                } else {
+                    console.warn('AI Analysis API health check failed');
+                }
+            } catch (error) {
+                console.error('Failed to connect to AI Analysis API:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+
