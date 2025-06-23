@@ -3,11 +3,10 @@
 A comprehensive web application for studying and researching AI, Machine Learning, and Deep Learning concepts with hands-on capabilities for image recognition, website analysis, and question answering.
 
 ## App pics
-![image](https://github.com/user-attachments/assets/5f5fa220-e9f7-4f60-9ef8-41eb4ba97a75)
-![image](https://github.com/user-attachments/assets/eade518c-14ae-4ba2-a56b-7488a3851a83)
-![image](https://github.com/user-attachments/assets/48ab3316-3d39-4fd6-815c-4efb8972772b)
-![image](https://github.com/user-attachments/assets/8bda0a24-7b9e-41d3-b854-7390dfa7e87f)
-![image](https://github.com/user-attachments/assets/53bf2375-12b7-403e-a7f7-bae035c57a27)
+![image](https://github.com/user-attachments/assets/c9d3f534-5c0c-411a-af6c-1370c59acb12)
+![image](https://github.com/user-attachments/assets/3ecfa487-22c5-4e52-bdf0-36fa9f7e658c)
+![image](https://github.com/user-attachments/assets/7854e595-d239-48a4-9258-c9fb3c738888)
+
 
 ## Features
 
